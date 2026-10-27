@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VibeCraft AI - Viral Meme & Content Studio</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Space+Grotesk:wght@500;700&display=swap');
+    
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #0b0f19;
+      color: #f3f4f6;
+    }
+    .font-mono-custom {
+      font-family: 'Space Grotesk', monospace;
+    }
+
+    /* Kinetic Text Effects */
+    .text-glitch {
+      text-shadow: 2px 2px #ff007f, -2px -2px #00f0ff;
+      animation: glitch 1.5s infinite alternate;
+    }
+    @keyframes glitch {
+      0% { text-shadow: 2px 2px #ff007f, -2px -2px #00f0ff; }
+      50% { text-shadow: -2px 2px #00f0ff, 2px -2px #ff007f; }
+      100% { text-shadow: 2px -2px #ff007f, -2px 2px #00f0ff; }
+    }
+
+    .text-rainbow {
+      background: linear-gradient(90deg, #ff0055, #7a00ff, #00e5ff, #00ff66, #ff0055);
+      background-size: 200% auto;
+      color: transparent;
+      -webkit-background-clip: text;
+      animation: rainbow 3s linear infinite;
+    }
+    @keyframes rainbow {
+      to { background-position: 200% center; }
+    }
+
+    .text-bounce {
+      display: inline-block;
+      animation: bounce 0.8s infinite alternate ease-in-out;
+    }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-8px); }
+    }
+
+    .text-pulse-glow {
+      animation: pulseGlow 1.8s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      from { text-shadow: 0 0 5px #a855f7, 0 0 10px #a855f7; }
+      to { text-shadow: 0 0 20px #ec4899, 0 0 35px #ec4899; }
+    }
+
+    /* Weather Canvas Positioning */
+    #weatherCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Custom Glassmorphism */
+    .glass-card {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-pink-500 selection:text-white">
+
+  <!-- Top Marquee Banner -->
+  <div class="bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-500 text-white text-xs font-bold py-1.5 overflow-hidden whitespace-nowrap shadow-lg">
+    <div class="inline-block animate-marquee tracking-wider uppercase" id="marqueeText">
+      🔥 VIRAL VIBE CRAFT STUDIO • CREATE VIRAL MEMES IN SECONDS • 100% FREE DAILY CREDITS • LIVE MOVING EFFECTS & ATMOSPHERIC WEATHER OVERLAYS • PRO MONETIZATION READY
+    </div>
+  </div>
+
+  <!-- Header / Navigation -->
+  <header class="border-b border-gray-800 bg-gray-900/80 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="playAudio('pop');">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-500 to-purple-600 flex items-center justify-center font-black text-xl shadow-lg shadow-pink-500/20">
+          ⚡
+        </div>
+        <div>
+          <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-200 to-pink-400 bg-clip-text text-transparent">
+            VibeCraft <span class="text-pink-500 text-xs px-2 py-0.5 rounded-full bg-pink-500/10 border border-pink-500/30">PRO</span>
+          </h1>
+          <p class="text-[10px] text-gray-400 font-mono-custom">REAL-TIME MEME & VIRAL FACTORY</p>
+        </div>
+      </div>
+
+      <!-- Controls & Credits -->
+      <div class="flex items-center space-x-3">
+        <!-- Sound Toggle Button -->
+        <button id="soundBtn" onclick="toggleSound();" class="p-2 rounded-lg bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700 transition">
+          <i class="fa-solid fa-volume-high text-sm" id="soundIcon"></i>
+        </button>
+
+        <!-- Credit Meter -->
+        <div class="hidden sm:flex items-center space-x-2 bg-gray-800/80 border border-gray-700 px-3 py-1.5 rounded-xl">
+          <i class="fa-solid fa-bolt text-yellow-400 text-sm"></i>
+          <span class="text-xs font-bold text-gray-200"><span id="creditCount">5</span> Free Renders</span>
+          <span class="text-[10px] text-gray-400 font-mono-custom pl-1 border-l border-gray-700" id="timerDisplay">23:59</span>
+        </div>
+
+        <!-- Pro Unlock Button -->
+        <button onclick="openModal('proModal'); playAudio('chime');" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md transition transform active:scale-95 flex items-center space-x-1.5">
+          <i class="fa-solid fa-crown text-yellow-300"></i>
+          <span>Get Unlimited</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 py-6 w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- LEFT PANEL: Controls & Inputs (5 Cols) -->
+    <div class="lg:col-span-5 space-y-6">
+      
+      <!-- Studio Tabs -->
+      <div class="flex bg-gray-900 p-1 rounded-2xl border border-gray-800">
+        <button onclick="switchTab('meme')" id="tab-meme" class="flex-1 py-2 text-xs font-bold rounded-xl transition bg-pink-600 text-white shadow-md">
+          <i class="fa-solid fa-face-laugh-squint mr-1"></i> Meme & Roast
+        </button>
+        <button onclick="switchTab('predictor')" id="tab-predictor" class="flex-1 py-2 text-xs font-bold rounded-xl transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-crystal-ball mr-1"></i> Future Vibe
+        </button>
+        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="flex-1 py-2 text-xs font-bold rounded-xl transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-chart-line mr-1"></i> Earnings
+        </button>
+      </div>
+
+      <!-- PANEL 1: MEME GENERATOR CONTROLS -->
+      <div id="section-meme" class="glass-card p-5 rounded-2xl space-y-5">
+        <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+          <h2 class="text-sm font-bold text-gray-200 uppercase tracking-wider flex items-center">
+            <i class="fa-solid fa-sliders text-pink-500 mr-2"></i> Custom Meme Controls
+          </h2>
+          <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 font-mono-custom">LIVE AUTO-RENDER</span>
+        </div>
+
+        <!-- Preset Selection Buttons -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-2">1. Select Preset Background</label>
+          <div class="grid grid-cols-4 gap-2" id="presetGrid">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+
+        <!-- Custom Image Upload -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1.5">Or Upload Custom Image</label>
+          <input type="file" id="imageUpload" accept="image/*" class="block w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-pink-400 hover:file:bg-gray-700 cursor-pointer">
+        </div>
+
+        <!-- Text Inputs -->
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Top Headline / Question</label>
+            <input type="text" id="topTextInput" placeholder="Me explaining why I need this purchase..." value="When you write code and it works on the first try..." oninput="updateMeme();" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-pink-500 transition">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Bottom Punchline</label>
+            <input type="text" id="bottomTextInput" placeholder="Absolute Perfection." value="Absolute Magic. No bugs found." oninput="updateMeme();" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-pink-500 transition">
+          </div>
+        </div>
+
+        <!-- Kinetic Text & Style Effects -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Kinetic Text Animation</label>
+            <select id="kineticEffectSelect" onchange="updateMeme(); playAudio('pop');" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+              <option value="none">Classic Solid Impact</option>
+              <option value="glitch" selected>Cyber Glitch FX</option>
+              <option value="rainbow">Rainbow Wave</option>
+              <option value="bounce">Kinetic Bounce</option>
+              <option value="pulse">Neon Pulse Glow</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Atmospheric Weather</label>
+            <select id="weatherOverlaySelect" onchange="changeWeather(this.value); playAudio('pop');" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+              <option value="none">Clear Sky (None)</option>
+              <option value="rain" selected>Cyber Rain</option>
+              <option value="matrix">Matrix Code Fall</option>
+              <option value="snow">Chill Snowfall</option>
+              <option value="sun">Solar Flares</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Watermark Toggle -->
+        <div class="flex items-center justify-between bg-gray-900/60 p-3 rounded-xl border border-gray-800">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-shield-halved text-pink-400 text-xs"></i>
+            <span class="text-xs text-gray-300 font-medium">Remove VibeCraft Watermark</span>
+          </div>
+          <button onclick="openModal('proModal'); playAudio('chime');" class="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg hover:bg-purple-500/30">Unlock Pro</button>
+        </div>
+
+      </div>
+
+      <!-- PANEL 2: FUTURE SELF PREDICTOR -->
+      <div id="section-predictor" class="glass-card p-5 rounded-2xl space-y-4 hidden">
+        <h2 class="text-sm font-bold text-gray-200 uppercase tracking-wider border-b border-gray-800 pb-3 flex items-center">
+          <i class="fa-solid fa-sparkles text-purple-400 mr-2"></i> Future Vibe & Net Worth Predictor
+        </h2>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Your Name / Handle</label>
+            <input type="text" id="predName" value="@alex_dev" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Current Primary Skill / Obsession</label>
+            <input type="text" id="predSkill" value="Building Viral Apps & Prompting" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+          </div>
+          <button onclick="generateFuturePrediction(); playAudio('magic');" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-lg">
+            ✨ Calculate 2030 Future Self Vibe
+          </button>
+        </div>
+      </div>
+
+      <!-- PANEL 3: MONETIZATION & ANALYTICS DASHBOARD -->
+      <div id="section-dashboard" class="glass-card p-5 rounded-2xl space-y-4 hidden">
+        <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+          <h2 class="text-sm font-bold text-gray-200 uppercase tracking-wider flex items-center">
+            <i class="fa-solid fa-wallet text-emerald-400 mr-2"></i> Creator Revenue Simulator
+          </h2>
+          <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">ESTIMATED EST.</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-gray-900 p-3 rounded-xl border border-gray-800">
+            <span class="text-[10px] text-gray-400 block font-mono-custom">MONTHLY RECURRING (MRR)</span>
+            <span class="text-lg font-black text-emerald-400">$3,420.00</span>
+            <span class="text-[9px] text-emerald-500 block">▲ +18.4% this week</span>
+          </div>
+          <div class="bg-gray-900 p-3 rounded-xl border border-gray-800">
+            <span class="text-[10px] text-gray-400 block font-mono-custom">VIRAL SHARES IMPRESSIONS</span>
+            <span class="text-lg font-black text-cyan-400">1.42M</span>
+            <span class="text-[9px] text-cyan-500 block">▲ TikTok & IG Stories</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 bg-gray-900/50 p-3 rounded-xl border border-gray-800/80">
+          <div class="flex justify-between text-xs">
+            <span class="text-gray-400">Ad CPM Earnings</span>
+            <span class="font-mono-custom font-bold text-gray-200">$482.50</span>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span class="text-gray-400">Pro Subscriptions (342 users)</span>
+            <span class="font-mono-custom font-bold text-pink-400">$2,937.50</span>
+          </div>
+          <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden mt-1">
+            <div class="bg-gradient-to-r from-emerald-400 to-pink-500 h-full w-[78%]"></div>
+          </div>
+        </div>
+
+        <button onclick="openModal('shareModal'); playAudio('pop');" class="w-full bg-gray-800 hover:bg-gray-700 text-xs text-gray-300 font-bold py-2 rounded-xl transition border border-gray-700 flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-share-nodes text-pink-400"></i>
+          <span>Get Your Viral Referral Link</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: Live Interactive Preview Card & Canvas (7 Cols) -->
+    <div class="lg:col-span-7 flex flex-col items-center justify-start space-y-4">
+      
+      <!-- Preview Wrapper Card with Weather Canvas Overlay -->
+      <div id="previewCard" class="w-full max-w-lg aspect-square bg-gray-950 rounded-3xl border-2 border-gray-800 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center p-6 transition-all duration-300">
+        
+        <!-- Weather Overlay Canvas -->
+        <canvas id="weatherCanvas"></canvas>
+
+        <!-- Dynamic Content Render Container -->
+        <div id="cardContent" class="w-full h-full flex flex-col justify-between items-center text-center z-20 relative">
+          
+          <!-- Top Text Layer -->
+          <div id="renderTopText" class="w-full text-xl sm:text-2xl font-black uppercase tracking-tight text-white leading-tight drop-shadow-md text-glitch transition-all">
+            When you write code and it works on the first try...
+          </div>
+
+          <!-- Central Image / Preset Display Layer -->
+          <div class="relative my-4 w-full flex-1 flex items-center justify-center overflow-hidden rounded-2xl border border-gray-800/80 bg-gray-900/50 shadow-inner group">
+            <img id="renderImage" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80" alt="Meme Canvas" class="max-h-64 sm:max-h-72 object-contain transition transform duration-300 group-hover:scale-105">
+            
+            <!-- Watermark Badge -->
+            <div id="watermarkBadge" class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-md text-[10px] text-pink-400 font-bold px-2 py-0.5 rounded-full border border-pink-500/30 tracking-wide flex items-center space-x-1">
+              <span>⚡ VibeCraft AI</span>
+            </div>
+          </div>
+
+          <!-- Bottom Punchline Layer -->
+          <div id="renderBottomText" class="w-full text-lg sm:text-xl font-extrabold text-yellow-300 tracking-wide leading-tight drop-shadow-md transition-all">
+            Absolute Magic. No bugs found.
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="w-full max-w-lg flex items-center gap-3">
+        <button onclick="downloadHDCanvas();" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black py-3 px-4 rounded-2xl shadow-xl hover:shadow-emerald-500/20 transition transform active:scale-95 flex items-center justify-center space-x-2 text-sm">
+          <i class="fa-solid fa-download text-base"></i>
+          <span>Download HD PNG</span>
+        </button>
+
+        <button onclick="openModal('shareModal'); playAudio('pop');" class="bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold p-3 rounded-2xl border border-gray-700 transition transform active:scale-95 flex items-center justify-center" title="Share Content">
+          <i class="fa-solid fa-paper-plane text-pink-400 text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Live Simulated Banner Ad -->
+      <div class="w-full max-w-lg bg-gray-900/90 border border-gray-800 p-3 rounded-2xl text-center relative overflow-hidden">
+        <span class="text-[9px] uppercase tracking-widest text-gray-500 block mb-0.5 font-mono-custom">SPONSORED ADVERTISEMENT</span>
+        <p class="text-xs font-semibold text-gray-300">🚀 Launch your startup in 24 hrs with AI Studio Pro</p>
+        <a href="#" onclick="event.preventDefault(); openModal('proModal');" class="text-[11px] text-pink-400 font-bold underline hover:text-pink-300">Claim 80% Off Creator Bundle &rarr;</a>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-800/80 bg-gray-950 py-4 mt-8">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 space-y-2 sm:space-y-0">
+      <div>© 2026 VibeCraft AI Studio. All rights reserved.</div>
+      <div class="flex space-x-4">
+        <a href="#" onclick="event.preventDefault(); openModal('proModal');" class="hover:text-gray-300">Pricing</a>
+        <a href="#" onclick="event.preventDefault(); openModal('shareModal');" class="hover:text-gray-300">Referral Program</a>
+        <a href="#" class="hover:text-gray-300">API Access</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODAL 1: PRO TIER PAYWALL -->
+  <div id="proModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-gray-900 border border-gray-800 rounded-3xl max-w-md w-full p-6 relative shadow-2xl space-y-5">
+      <button onclick="closeModal('proModal');" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold">✕</button>
+
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 bg-pink-500/20 text-pink-400 rounded-2xl flex items-center justify-center mx-auto text-2xl border border-pink-500/30">
+          👑
+        </div>
+        <h3 class="text-xl font-extrabold text-white">Unlock VibeCraft Pro</h3>
+        <p class="text-xs text-gray-400">Supercharge your viral content with unlimited HD exports and exclusive tools.</p>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center space-x-2 text-gray-300 bg-gray-800/50 p-2.5 rounded-xl border border-gray-800">
+          <i class="fa-solid fa-check text-emerald-400"></i>
+          <span>Unlimited 4K HD Downloads (No Watermark)</span>
+        </div>
+        <div class="flex items-center space-x-2 text-gray-300 bg-gray-800/50 p-2.5 rounded-xl border border-gray-800">
+          <i class="fa-solid fa-check text-emerald-400"></i>
+          <span>Exclusive Cyber Weather FX & Particle Effects</span>
+        </div>
+        <div class="flex items-center space-x-2 text-gray-300 bg-gray-800/50 p-2.5 rounded-xl border border-gray-800">
+          <i class="fa-solid fa-check text-emerald-400"></i>
+          <span>Commercial Rights & Monetization License</span>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/30 p-4 rounded-2xl text-center">
+        <span class="text-2xl font-black text-white">$9.99</span>
+        <span class="text-xs text-gray-400">/ month</span>
+        <button onclick="alert('Simulation: Pro License Activated! Enjoy Unlimited Access.'); closeModal('proModal'); playAudio('magic');" class="w-full mt-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-lg">
+          Upgrade Now (Instant Access)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: VIRAL SHARE & REFERRAL -->
+  <div id="shareModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-gray-900 border border-gray-800 rounded-3xl max-w-md w-full p-6 relative shadow-2xl space-y-4">
+      <button onclick="closeModal('shareModal');" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold">✕</button>
+
+      <div class="text-center space-y-1">
+        <h3 class="text-lg font-extrabold text-white">Share & Unlock Free Credits</h3>
+        <p class="text-xs text-gray-400">Invite friends to VibeCraft and earn +5 Pro Credits for each join.</p>
+      </div>
+
+      <div class="bg-gray-950 p-3 rounded-xl border border-gray-800 flex items-center justify-between">
+        <span class="text-xs font-mono-custom text-gray-300 truncate mr-2" id="refLinkInput">https://vibecraft.ai/ref?id=viral_9942</span>
+        <button onclick="copyReferralLink();" class="bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+          Copy Link
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="shareSocial('Twitter');" class="bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 py-2 rounded-xl text-xs font-bold transition">
+          <i class="fa-brands fa-twitter mr-1"></i> Twitter
+        </button>
+        <button onclick="shareSocial('TikTok');" class="bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 border border-pink-500/30 py-2 rounded-xl text-xs font-bold transition">
+          <i class="fa-brands fa-tiktok mr-1"></i> TikTok
+        </button>
+        <button onclick="shareSocial('WhatsApp');" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 py-2 rounded-xl text-xs font-bold transition">
+          <i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT ENGINE -->
+  <script>
+    // --- APP STATE ---
+    let soundEnabled = true;
+    let currentOverlay = 'rain';
+    let weatherAnimationId = null;
+    let selectedPresetUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80";
+
+    const presets = [
+      { id: 1, name: 'Cool Vibe', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80' },
+      { id: 2, name: 'Cyber Neon', url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80' },
+      { id: 3, name: 'Focus Dev', url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80' },
+      { id: 4, name: 'Cat Vibe', url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80' }
+    ];
+
+    // --- AUDIO SYNTHESIS ENGINE (Web Audio API) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playAudio(type) {
+      if (!soundEnabled) return;
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'pop') {
+          osc.frequency.setValueAtTime(400, now);
+          osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'chime') {
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.25);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'magic') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.linearRampToValueAtTime(900, now + 0.3);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        }
+      } catch (e) {
+        console.warn('Audio play restricted');
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const icon = document.getElementById('soundIcon');
+      if (soundEnabled) {
+        icon.className = "fa-solid fa-volume-high text-sm";
+      } else {
+        icon.className = "fa-solid fa-volume-xmark text-sm text-red-400";
+      }
+    }
+
+    // --- INITIALIZATION ---
+    window.onload = function() {
+      renderPresetGrid();
+      initWeatherCanvas();
+      changeWeather('rain');
+      startCreditTimer();
+      updateMeme();
+    };
+
+    function renderPresetGrid() {
+      const grid = document.getElementById('presetGrid');
+      grid.innerHTML = '';
+      presets.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = "relative rounded-xl overflow-hidden border-2 border-gray-700 hover:border-pink-500 aspect-square transition transform active:scale-95";
+        btn.onclick = () => {
+          selectedPresetUrl = p.url;
+          document.getElementById('renderImage').src = p.url;
+          playAudio('pop');
+        };
+        btn.innerHTML = `<img src="${p.url}" class="w-full h-full object-cover"><span class="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-white py-0.5 truncate">${p.name}</span>`;
+        grid.appendChild(btn);
+      });
+    }
+
+    // --- TAB SWITCHING ---
+    function switchTab(tab) {
+      playAudio('pop');
+      ['meme', 'predictor', 'dashboard'].forEach(t => {
+        document.getElementById(`section-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).className = "flex-1 py-2 text-xs font-bold rounded-xl transition text-gray-400 hover:text-white";
+      });
+
+      document.getElementById(`section-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-${tab}`).className = "flex-1 py-2 text-xs font-bold rounded-xl transition bg-pink-600 text-white shadow-md";
+    }
+
+    // --- REAL-TIME MEME UPDATER & KINETIC EFFECTS ---
+    function updateMeme() {
+      const topVal = document.getElementById('topTextInput').value || ' ';
+      const bottomVal = document.getElementById('bottomTextInput').value || ' ';
+      const effect = document.getElementById('kineticEffectSelect').value;
+
+      const topEl = document.getElementById('renderTopText');
+      const bottomEl = document.getElementById('renderBottomText');
+
+      topEl.innerText = topVal;
+      bottomEl.innerText = bottomVal;
+
+      // Reset classes
+      topEl.className = "w-full text-xl sm:text-2xl font-black uppercase tracking-tight text-white leading-tight drop-shadow-md transition-all";
+      bottomEl.className = "w-full text-lg sm:text-xl font-extrabold text-yellow-300 tracking-wide leading-tight drop-shadow-md transition-all";
+
+      if (effect === 'glitch') {
+        topEl.classList.add('text-glitch');
+      } else if (effect === 'rainbow') {
+        topEl.classList.add('text-rainbow');
+        bottomEl.classList.add('text-rainbow');
+      } else if (effect === 'bounce') {
+        topEl.classList.add('text-bounce');
+      } else if (effect === 'pulse') {
+        topEl.classList.add('text-pulse-glow');
+        bottomEl.classList.add('text-pulse-glow');
+      }
+    }
+
+    // Custom Image Upload Handler
+    document.getElementById('imageUpload').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          document.getElementById('renderImage').src = evt.target.result;
+          playAudio('magic');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // --- FUTURE PREDICTOR GENERATOR ---
+    function generateFuturePrediction() {
+      const name = document.getElementById('predName').value || '@creator';
+      const skill = document.getElementById('predSkill').value || 'Vibe Coding';
+
+      document.getElementById('topTextInput').value = `FUTURE 2030 SPEC: ${name.toUpperCase()}`;
+      document.getElementById('bottomTextInput').value = `NET WORTH: $12.4M • ROLE: CHIEF ${skill.toUpperCase()} ARCHITECT`;
+      
+      switchTab('meme');
+      updateMeme();
+    }
+
+    // --- ATMOSPHERIC WEATHER ENGINE (Canvas Particles) ---
+    function initWeatherCanvas() {
+      const canvas = document.getElementById('weatherCanvas');
+      const card = document.getElementById('previewCard');
+      canvas.width = card.clientWidth;
+      canvas.height = card.clientHeight;
+    }
+
+    function changeWeather(type) {
+      currentOverlay = type;
+      if (weatherAnimationId) cancelAnimationFrame(weatherAnimationId);
+      
+      const canvas = document.getElementById('weatherCanvas');
+      const ctx = canvas.getContext('2d');
+      initWeatherCanvas();
+
+      if (type === 'none') {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+
+      let particles = [];
+      const particleCount = type === 'matrix' ? 30 : 40;
+
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          speed: Math.random() * 3 + 1,
+          size: Math.random() * 2 + 1,
+          char: String.fromCharCode(0x30A0 + Math.random() * 96)
+        });
+      }
+
+      function renderFrame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach(p => {
+          if (type === 'rain') {
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.6)';
+            ctx.fillRect(p.x, p.y, 1.5, p.size * 8);
+            p.y += p.speed * 3;
+          } else if (type === 'matrix') {
+            ctx.fillStyle = 'rgba(0, 255, 102, 0.8)';
+            ctx.font = '10px monospace';
+            ctx.fillText(p.char, p.x, p.y);
+            p.y += p.speed * 2;
+          } else if (type === 'snow') {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            p.y += p.speed * 0.8;
+          } else if (type === 'sun') {
+            ctx.fillStyle = 'rgba(255, 200, 0, 0.4)';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+            ctx.fill();
+            p.y -= p.speed * 0.5;
+          }
+
+          if (p.y > canvas.height) p.y = -10;
+          if (p.y < -10) p.y = canvas.height;
+        });
+
+        weatherAnimationId = requestAnimationFrame(renderFrame);
+      }
+
+      renderFrame();
+    }
+
+    // Window resize handler for weather overlay
+    window.onresize = () => {
+      initWeatherCanvas();
+    };
+
+    // --- DIRECT HD CANVAS DOWNLOADER ---
+    function downloadHDCanvas() {
+      playAudio('chime');
+
+      // Deduct credit simulation
+      let credits = parseInt(document.getElementById('creditCount').innerText);
+      if (credits > 0) {
+        credits--;
+        document.getElementById('creditCount').innerText = credits;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 800;
+      canvas.height = 800;
+      const ctx = canvas.getContext('2d');
+
+      // 1. Background Fill
+      ctx.fillStyle = '#0b0f19';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 2. Draw Main Image
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = document.getElementById('renderImage').src;
+
+      img.onload = function() {
+        ctx.drawImage(img, 100, 180, 600, 440);
+
+        // 3. Draw Top Text
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 32px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        const topText = document.getElementById('topTextInput').value || 'VIBECRAFT STUDIO';
+        ctx.fillText(topText.toUpperCase(), 400, 120);
+
+        // 4. Draw Bottom Text
+        ctx.fillStyle = '#facc15';
+        ctx.font = '800 28px Outfit, sans-serif';
+        const bottomText = document.getElementById('bottomTextInput').value || 'VIRAL MEME';
+        ctx.fillText(bottomText, 400, 680);
+
+        // 5. Draw Watermark
+        ctx.fillStyle = '#ec4899';
+        ctx.font = 'bold 16px Space Grotesk, monospace';
+        ctx.fillText('⚡ VibeCraft AI Pro', 400, 750);
+
+        // Trigger Download
+        const link = document.createElement('a');
+        link.download = 'vibecraft-meme.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      };
+    }
+
+    // --- CREDIT TIMER ---
+    function startCreditTimer() {
+      let seconds = 23 * 3600 + 59 * 60;
+      setInterval(() => {
+        seconds--;
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        document.getElementById('timerDisplay').innerText = 
+          `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    // --- MODAL & REFERRAL FUNCTIONS ---
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function copyReferralLink() {
+      const link = document.getElementById('refLinkInput').innerText;
+      navigator.clipboard.writeText(link);
+      alert('Referral link copied to clipboard! Share it with friends for +5 extra credits.');
+      playAudio('pop');
+    }
+
+    function shareSocial(platform) {
+      alert(`Simulation: Opening ${platform} share drawer...`);
+    }
+  </script>
+</body>
+</html>
